@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Matceli Admin | Login</title>
+  <link rel="stylesheet" href="/static/admin.css"/>
+</head>
+<body class="wrap">
+  <div class="card">
+    <h1>Matceli Admin</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alerts">
+          {% for category, msg in messages %}
+            <div class="alert {{category}}">{{msg}}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" action="/login">
+      <label>Usuario
+        <input name="username" autocomplete="username" required>
+      </label>
+      <label>Contraseña
+        <input type="password" name="password" autocomplete="current-password" required>
+      </label>
+      <button type="submit">Ingresar</button>
+      <p class="muted">Tip: cambia ADMIN_USER y ADMIN_PASS en variables de entorno.</p>
+    </form>
+  </div>
+</body>
+</html>

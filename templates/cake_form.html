@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Matceli Admin | {{ 'Editar' if cake else 'Nuevo' }}</title>
+  <link rel="stylesheet" href="/static/admin.css"/>
+</head>
+<body class="container">
+  <header class="top">
+    <div>
+      <h1>{{ 'Editar' if cake else 'Nuevo' }} producto</h1>
+      <p class="muted">Completa la ficha (URL de imagen pública recomendado).</p>
+    </div>
+    <div class="actions">
+      <a class="btn ghost" href="/admin/cakes">Volver</a>
+    </div>
+  </header>
+
+  <form class="card" method="post" action="{{ '/admin/cakes/%s/edit'|format(cake.id) if cake else '/admin/cakes/new' }}">
+    <label>Nombre
+      <input name="name" required value="{{ cake.name if cake else '' }}">
+    </label>
+
+    <label>Categoría
+      <select name="category">
+        {% set cat = cake.category if cake else 'tortas' %}
+        <option value="tortas" {{ 'selected' if cat=='tortas' else '' }}>Tortas</option>
+        <option value="cupcakes" {{ 'selected' if cat=='cupcakes' else '' }}>Cupcakes</option>
+        <option value="bocaditos" {{ 'selected' if cat=='bocaditos' else '' }}>Bocaditos</option>
+        <option value="combos" {{ 'selected' if cat=='combos' else '' }}>Combos</option>
+      </select>
+    </label>
+
+    <label>Descripción corta
+      <input name="short_desc" value="{{ cake.short_desc if cake else '' }}">
+    </label>
+
+    <label>Precio desde (opcional)
+      <input name="price_from" inputmode="decimal" value="{{ cake.price_from if cake and cake.price_from is not none else '' }}">
+    </label>
+
+    <label>Porciones desde (opcional)
+      <input name="servings_from" inputmode="numeric" value="{{ cake.servings_from if cake and cake.servings_from is not none else '' }}">
+    </label>
+
+    <label>URL Imagen (opcional)
+      <input name="image_url" placeholder="https://..." value="{{ cake.image_url if cake else '' }}">
+    </label>
+
+    <label class="check">
+      <input type="checkbox" name="active" {{ 'checked' if (cake.active if cake else True) else '' }}>
+      Activo
+    </label>
+
+    <button type="submit">Guardar</button>
+  </form>
+</body>
+</html>

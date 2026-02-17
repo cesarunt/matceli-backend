@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Matceli Admin | Productos</title>
+  <link rel="stylesheet" href="/static/admin.css"/>
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>Productos</h1>
+      <p class="muted">Sesión: {{ user.username }}</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/admin/cakes/new">+ Nuevo</a>
+      <a class="btn ghost" href="/logout">Salir</a>
+    </div>
+  </header>
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alerts">
+          {% for category, msg in messages %}
+            <div class="alert {{category}}">{{msg}}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="filters">
+      <a class="{{ 'active' if not category else '' }}" href="/admin/cakes">Todos</a>
+      <a class="{{ 'active' if category=='tortas' else '' }}" href="/admin/cakes?category=tortas">Tortas</a>
+      <a class="{{ 'active' if category=='cupcakes' else '' }}" href="/admin/cakes?category=cupcakes">Cupcakes</a>
+      <a class="{{ 'active' if category=='bocaditos' else '' }}" href="/admin/cakes?category=bocaditos">Bocaditos</a>
+      <a class="{{ 'active' if category=='combos' else '' }}" href="/admin/cakes?category=combos">Combos</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Nombre</th><th>Categoría</th><th>Activo</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in cakes %}
+          <tr>
+            <td>{{ c.id }}</td>
+            <td>
+              <strong>{{ c.name }}</strong><br>
+              <span class="muted">{{ c.short_desc or '' }}</span>
+            </td>
+            <td>{{ c.category }}</td>
+            <td>{{ 'Sí' if c.active else 'No' }}</td>
+            <td class="row-actions">
+              <a class="btn ghost" href="/admin/cakes/{{c.id}}/edit">Editar</a>
+              <form method="post" action="/admin/cakes/{{c.id}}/delete" onsubmit="return confirm('¿Eliminar?');">
+                <button class="btn danger" type="submit">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>
