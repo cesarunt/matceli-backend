@@ -23,10 +23,17 @@ def create_app():
     ALLOWED_EXT = {"png", "jpg", "jpeg", "webp"}
 
     # SQLite (ligero). En producción puedes cambiar a Postgres con DATABASE_URL
+    db_url = os.getenv("DATABASE_URL")
+    if db_url and db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://")
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or "sqlite:///matceli.db"
     #db_url = os.getenv("DATABASE_URL", "sqlite:///instance/matceli.db")
     #app.config["SQLALCHEMY_DATABASE_URI"] = db_url
-    default_sqlite = "sqlite:///" + os.path.join(app.instance_path, "matceli.db").replace("\\", "/")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", default_sqlite)
+    
+    # default_sqlite = "sqlite:///" + os.path.join(app.instance_path, "matceli.db").replace("\\", "/")
+    # app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", default_sqlite)
+    
     # asegura que exista la carpeta instance real de Flask
     os.makedirs(app.instance_path, exist_ok=True)
 
