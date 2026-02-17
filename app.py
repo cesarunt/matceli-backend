@@ -3,6 +3,9 @@ from flask import Flask, jsonify, request, render_template, redirect, url_for, f
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_cors import CORS
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
+from uuid import uuid4
+
 
 from models import db, User, Cake
 
@@ -11,6 +14,13 @@ load_dotenv()
 def create_app():
     app = Flask(__name__)
     app.secret_key = os.getenv("SECRET_KEY", "key-2026$")
+
+    UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads")
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+    app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+    app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024  # 8MB
+    ALLOWED_EXT = {"png", "jpg", "jpeg", "webp"}
 
     # SQLite (ligero). En producción puedes cambiar a Postgres con DATABASE_URL
     #db_url = os.getenv("DATABASE_URL", "sqlite:///instance/matceli.db")
@@ -130,16 +140,18 @@ def create_app():
     @app.post("/admin/cakes/new")
     @login_required
     def cake_new_post():
+        img_path = save_upload(request.files.get("image_file"))
+
         c = Cake(
             name=request.form.get("name", "").strip(),
             category=request.form.get("category", "tortas"),
             short_desc=request.form.get("short_desc", "").strip(),
-            image_url=request.form.get("image_url", "").strip(),
+            image_url=img_path,  # <- ruta del archivo subido
             active=(request.form.get("active") == "on"),
         )
+
         price = request.form.get("price_from", "").strip()
         servings = request.form.get("servings_from", "").strip()
-
         c.price_from = float(price) if price else None
         c.servings_from = int(servings) if servings else None
 
@@ -147,6 +159,7 @@ def create_app():
         db.session.commit()
         flash("Producto creado ✅", "ok")
         return redirect(url_for("cakes_admin"))
+
 
     @app.get("/admin/cakes/<int:cid>/edit")
     @login_required
@@ -168,7 +181,6 @@ def create_app():
         c.name = request.form.get("name", "").strip()
         c.category = request.form.get("category", "tortas")
         c.short_desc = request.form.get("short_desc", "").strip()
-        c.image_url = request.form.get("image_url", "").strip()
         c.active = (request.form.get("active") == "on")
 
         price = request.form.get("price_from", "").strip()
@@ -176,9 +188,15 @@ def create_app():
         c.price_from = float(price) if price else None
         c.servings_from = int(servings) if servings else None
 
+        # Si subieron una nueva imagen, reemplaza. Si no, conserva la actual.
+        new_img = save_upload(request.files.get("image_file"))
+        if new_img:
+            c.image_url = new_img
+
         db.session.commit()
         flash("Producto actualizado ✅", "ok")
         return redirect(url_for("cakes_admin"))
+
 
     @app.post("/admin/cakes/<int:cid>/delete")
     @login_required
@@ -189,6 +207,27 @@ def create_app():
             db.session.commit()
             flash("Producto eliminado ✅", "ok")
         return redirect(url_for("cakes_admin"))
+    
+    # -------------------------
+    # Admin (Helper Function)
+    # -------------------------
+    def allowed_file(filename: str) -> bool:
+        return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXT
+
+    def save_upload(file_storage) -> str | None:
+        if not file_storage or file_storage.filename == "":
+            return None
+        if not allowed_file(file_storage.filename):
+            return None
+
+        ext = file_storage.filename.rsplit(".", 1)[1].lower()
+        filename = secure_filename(f"{uuid4().hex}.{ext}")
+        path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file_storage.save(path)
+
+        # Esto es lo que guardarás en BD (ruta pública)
+        return f"/static/uploads/{filename}"
+
 
     return app
 

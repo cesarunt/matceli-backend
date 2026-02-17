@@ -17,7 +17,9 @@
     </div>
   </header>
 
-  <form class="card" method="post" action="{{ '/admin/cakes/%s/edit'|format(cake.id) if cake else '/admin/cakes/new' }}">
+  <form class="card" method="post" enctype="multipart/form-data"
+  action="{{ '/admin/cakes/%s/edit'|format(cake.id) if cake else '/admin/cakes/new' }}">
+
     <label>Nombre
       <input name="name" required value="{{ cake.name if cake else '' }}">
     </label>
@@ -44,9 +46,20 @@
       <input name="servings_from" inputmode="numeric" value="{{ cake.servings_from if cake and cake.servings_from is not none else '' }}">
     </label>
 
-    <label>URL Imagen (opcional)
+    <!-- <label>URL Imagen (opcional)
       <input name="image_url" placeholder="https://..." value="{{ cake.image_url if cake else '' }}">
+    </label> -->
+    <label>Imagen (subir desde tu PC)
+    <input type="file" name="image_file" accept="image/png,image/jpeg,image/webp">
     </label>
+
+    {% if cake and cake.image_url %}
+    <div class="preview">
+        <p class="muted">Imagen actual:</p>
+        <img src="{{ cake.image_url }}" alt="Imagen del producto" />
+    </div>
+    {% endif %}
+
 
     <label class="check">
       <input type="checkbox" name="active" {{ 'checked' if (cake.active if cake else True) else '' }}>
