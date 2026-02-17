@@ -1,6 +1,7 @@
 # Ignore node_modules and dependency directories
 node_modules/
 vendor/
+__pycache__/
 
 # Ignore build artifacts
 dist/
